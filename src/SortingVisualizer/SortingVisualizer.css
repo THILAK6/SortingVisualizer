@@ -1,0 +1,21 @@
+.array-container {
+    position: center;
+}
+
+.array-bar {
+    padding-right: 5px;
+    display: inline-block;
+    background-color: pink;
+    margin: 3% 1px 1% 1px;
+    width: 10px;
+}
+
+.box {
+    align-self: center;
+    align-content: center;
+    alignment-baseline: center;
+}
+
+.disabled-text{
+    color: #C6C6C6;
+}
