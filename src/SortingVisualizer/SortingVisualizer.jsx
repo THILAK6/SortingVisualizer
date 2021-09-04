@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import './SortingVisualizer.css'
 import {Box, Button, Slider} from '@material-ui/core';
 
@@ -6,7 +6,7 @@ const SortingVisualizer = () => {
 
     function generateRandomArray() {
         let tempArray = [];
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < length; i++) {
             tempArray.push(Math.floor(Math.random() * (800 - 1 + 5)) + 5);
         }
         setArray(tempArray);
@@ -23,11 +23,14 @@ const SortingVisualizer = () => {
         function processQueue() {
             if (queue.length > 0) {
                 setTimeout(function () {
-                    queue.shift().cb();
-                    processQueue();
+                    if (isProcessingRef.current) {
+                        queue.shift().cb();
+                        processQueue();
+                    } else queue = [];
                 }, queue[0].delay);
             } else {
-                setIsProcessing(true);
+                setIsProcessing(false);
+                isProcessingRef.current = false;
             }
         }
 
@@ -41,8 +44,8 @@ const SortingVisualizer = () => {
     }());
 
     function bubbleSortCaller() {
-
-        setIsProcessing(false);
+        setIsProcessing(true);
+        isProcessingRef.current = true;
         let i = 0, j;
         let arr = array.slice();
         let arrayBars = document.getElementsByClassName('array-bar');
@@ -90,44 +93,80 @@ const SortingVisualizer = () => {
     }
 
     function changeTime(event, newTime) {
-
         setTime(newTime);
-        console.log(time);
     }
 
-    function isSpeed() {
+    function changeLength(event, newLength) {
+        setLength(newLength);
+    }
 
-        if (isProcessing) {
+    function showText(text) {
+
+        if (!isProcessing) {
             return (
-                <div>Speed</div>)
+                <div>{text}</div>)
         } else
             return (
-                <div className="disabled-text">Speed</div>)
+                <div className="disabled-text">{text}</div>)
     }
 
     useEffect(() => {
-        generateRandomArray();
-    }, []);
+        let arrayBars = document.getElementsByClassName('array-bar');
+        if(array.toString() !== Array(array.length).fill(0).toString()) {
+            console.log(array)
+            for (let i = 0; i < length; i++) {
+                arrayBars[i].style.backgroundColor = 'pink';
+            }
+        }
+    });
 
-    const [array, setArray] = useState([]);
+    const [length, setLength] = useState(50);
+    const [array, setArray] = useState(Array(50).fill(0));
     const [time, setTime] = useState(100);
-    const [isProcessing, setIsProcessing] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const isProcessingRef = useRef(isProcessing);
+
+    function showLength() {
+        return `length`;
+    }
+
+    function stopExecution() {
+        setIsProcessing(false);
+        isProcessingRef.current = false;
+    }
+
+    function displayArray() {
+        return <Box
+            sx={{paddingTop: '3%', paddingBottom: '3%', height: '100px', width: '100%'}}>{array.map((value, idx) =>
+            <div
+                className='array-bar' key={idx} style={{height: `${value}px`, backgroundColor: 'pink'}}/>)}</Box>;
+    }
 
     return (
         <div className="array-container">
 
-            <Box sx={{marginTop: '10px', marginBottom: '10px', height: '100px'}}>{array.map((value) => <div
-                className="array-bar" style={{height: `${value}px`}}/>)}</Box>
+            {displayArray()}
             <div>
-                <Button disabled={!isProcessing} variant="primary" active onClick={() => generateRandomArray()}>New
+                <Button disabled={isProcessing} variant="outlined" color="inherit" style={{borderColor: 'pink'}} active
+                        onClick={() => generateRandomArray()}>New
                     Array</Button>
-                <Button disabled={!isProcessing} variant='text' onClick={() => bubbleSortCaller()}> bubble sort</Button>
-                <Button disabled={!isProcessing} onClick={() => mergeSortCaller()}> merge sort</Button>
-                <Button disabled={!isProcessing} onClick={() => quickSortCaller()}> quick sort</Button>
+                <Button disabled={isProcessing} variant='text' onClick={() => bubbleSortCaller()}> bubble sort</Button>
+                <Button disabled={isProcessing} onClick={() => mergeSortCaller()}> merge sort</Button>
+                <Button disabled={isProcessing} onClick={() => quickSortCaller()}> quick sort</Button>
+                <Button disabled={!isProcessing} onClick={() => stopExecution()}> stop</Button>
+                {/*<Button disabled={isProcessing} onClick={() => playExecution()}> stop</Button>*/}
                 <Box sx={{width: 200, margin: 'auto'}}>
-                    {isSpeed()} <Slider min={1} max={1000} value={time} disabled={!isProcessing} track="inverted"
-                                        onChange={changeTime}
-                                        aria-labelledby="continuous-slider"/></Box>
+                    {showText("speed")}
+                    <Slider min={1} max={1000} value={time} disabled={isProcessing} track="inverted"
+                            onChange={changeTime}
+                            aria-labelledby="speed-slider"/>
+                    {showText("length")}
+                    <Slider min={5} max={50} value={length}
+                            disabled={isProcessing}
+                            onChange={changeLength}
+                            getAriaValueText={showLength}
+                            valueLabelDisplay="auto"
+                            aria-labelledby="length-slider"/></Box>
             </div>
         </div>
     );

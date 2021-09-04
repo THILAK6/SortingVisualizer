@@ -3,11 +3,9 @@
 }
 
 .array-bar {
-    padding-right: 5px;
     display: inline-block;
-    background-color: pink;
-    margin: 3% 1px 1% 1px;
-    width: 10px;
+    margin: 0 1px;
+    width: 30px;
 }
 
 .box {
